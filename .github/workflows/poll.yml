@@ -1,0 +1,29 @@
+name: Polling
+
+on:
+  workflow_dispatch:
+    schedule:
+    - cron: "*/15 * * * *"
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+    - uses: actions/checkout@v3
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        workload_identity_provider: 'projects/1009605864831/locations/global/workloadIdentityPools/github/providers/github'
+        service_account: 'dte-action@dte-monitoring.iam.gserviceaccount.com'
+    - uses: 'google-github-actions/setup-gcloud@v1'
+      with:
+        version: '>= 363.0.0'
+    - uses: 'actions/setup-python@v4'
+      with:
+        python-version: '3.9'
+        cache: 'pip' # caching pip dependencies
+    - run: pip install -r requirements.txt
+    - run: python fetch.py

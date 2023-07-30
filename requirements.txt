@@ -1,0 +1,7 @@
+folium==0.14.0
+geopandas==0.13.2
+rtree==1.0.1
+mapclassify==2.6.0
+matplotlib==3.5.3
+requests==2.31.0
+google-cloud-storage==2.10.0
