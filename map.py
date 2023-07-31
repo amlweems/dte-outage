@@ -46,8 +46,29 @@ for job_id, group in merged_outages.groupby('JOB_ID'):
     })
 outage_table = gpd.GeoDataFrame(outage_records, crs=merged_outages.crs)
 
+# group individual jobs into outage events
+outage_table_ts = outage_table.copy()
+outage_table_ts['start'] = pd.to_datetime(outage_table_ts['start'], unit='s')
+outage_table_ts['end'] = pd.to_datetime(outage_table_ts['end'], unit='s')
+outage_table_ts = outage_table_ts.sort_values(by='start')
+
+event_id = 0
+event_mapping = {}
+for index, row in outage_table_ts.iterrows():
+    # if the current row started after the current event, make a new event
+    if not event_mapping or row['start'] > event_mapping[event_id]['end']:
+        event_id += 1
+        event_mapping[event_id] = {
+            'start': row['start'],
+            'end': row['end'],
+        }
+    else:
+        # otherwise, extend the event end time if needed
+        event_mapping[event_id]['end'] = max(event_mapping[event_id]['end'], row['end'])
+    outage_table.at[index, 'event_id'] = event_id
+
 # export table to gcs
-with bucket.blob('outages/merged.json').open('wb') as f:
+with bucket.blob('outages/merged.geojson').open('wb') as f:
     outage_table.to_file(f, driver='GeoJSON')
 
 # load Ann Arbor data from https://www.a2gov.org/services/data/Pages/default.aspx
@@ -72,7 +93,7 @@ landuse_summary_table = landuse.merge(landuse_summary_table, on='landuse_id')
 m = landuse_summary_table.explore(
     column='avg_length',
     name='Average Length',
-    tiles='CartoDB positron',
+    tiles='CartoDB dark_matter',
     cmap='plasma',
     style_kwds={'stroke': False},
     missing_kwds={'color': '#00000000'}
@@ -80,7 +101,7 @@ m = landuse_summary_table.explore(
 m = landuse_summary_table.explore(m=m,
     column='outage_count',
     name='Number of Outages',
-    tiles='CartoDB positron',
+    tiles='CartoDB dark_matter',
     cmap='plasma',
     style_kwds={'stroke': False},
     missing_kwds={'color': '#00000000'}
