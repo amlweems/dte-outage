@@ -93,7 +93,7 @@ landuse_summary_table = landuse.merge(landuse_summary_table, on='landuse_id')
 m = landuse_summary_table.explore(
     column='avg_length',
     name='Average Length',
-    tiles='CartoDB dark_matter',
+    tiles='CartoDB positron',
     cmap='plasma',
     style_kwds={'stroke': False},
     missing_kwds={'color': '#00000000'}
@@ -101,7 +101,7 @@ m = landuse_summary_table.explore(
 m = landuse_summary_table.explore(m=m,
     column='outage_count',
     name='Number of Outages',
-    tiles='CartoDB dark_matter',
+    tiles='CartoDB positron',
     cmap='plasma',
     style_kwds={'stroke': False},
     missing_kwds={'color': '#00000000'}
